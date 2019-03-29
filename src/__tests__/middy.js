@@ -433,31 +433,20 @@ describe('🛵  Middy test suite', () => {
     const checkHandler = (handler, endTest) => {
       let calls = 0
       handler({}, {}, () => calls++)
-      setTimeout(() => {
         expect(calls).toBe(1)
         endTest()
-      }, 100)
     }
 
     test('onSuccess', (endTest) => {
-      const handler = middy((event, context, callback) => {
-        return new Promise(resolve => setTimeout(() => {
-          callback()
-          resolve()
-        }, 50))
-      })
+      const handler = middy((event, context, callback) => callback)
       checkHandler(handler, endTest)
     })
 
     test('onError', (endTest) => {
       const handler = middy((event, context, callback) => {
-        return new Promise((resolve, reject) => setTimeout(() => {
-          const error = new Error('Async error')
-          callback(error)
-          reject(error)
-        }, 50))
+        const error = new Error('Async error')
+        callback(error)
       })
-
       checkHandler(handler, endTest)
     })
   })
@@ -493,6 +482,15 @@ describe('🛵  Middy test suite', () => {
       expect(err.message).toBe('Unexpected return value in handler')
       endTest()
     })
+  })
+
+  test('It should be possible to await a middyfied handler', async (endTest) => {
+    const originalHandler = async (event, context) => Promise.resolve({some: 'response'})
+    const handler = middy(originalHandler)
+
+    const response = await handler({}, {})
+    expect(response).toEqual({some: 'response'})
+    endTest()
   })
 
   test('It should handle async middlewares', (endTest) => {

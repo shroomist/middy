@@ -160,11 +160,13 @@ const middy = (handler) => {
       return runErrorMiddlewares(errorMiddlewares, instance, terminate)
     }
 
+    return new Promise((resolve, reject) => {
     runMiddlewares(beforeMiddlewares, instance, (err) => {
       if (err) return errorHandler(err)
 
       const onHandlerError = once((err) => {
         instance.response = null
+        reject(err)
         return errorHandler(err)
       })
 
@@ -173,6 +175,7 @@ const middy = (handler) => {
         runMiddlewares(afterMiddlewares, instance, (err) => {
           if (err) return errorHandler(err)
 
+          resolve(instance.response)
           return terminate()
         })
       })
@@ -188,10 +191,11 @@ const middy = (handler) => {
           throw new Error('Unexpected return value in handler')
         }
 
-        handlerReturnValue
+        return handlerReturnValue
           .then(onHandlerSuccess)
           .catch(onHandlerError)
       }
+    })
     })
   }
 
