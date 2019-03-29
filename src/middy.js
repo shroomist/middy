@@ -149,10 +149,10 @@ const middy = (handler) => {
 
     const terminate = (err) => {
       if (err) {
-        return callback ? callback(err) : err
+        return callback(err)
       }
 
-      return callback ? callback(null, instance.response) : instance.response
+      return callback(null, instance.response)
     }
 
     const errorHandler = err => {
